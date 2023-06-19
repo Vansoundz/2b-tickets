@@ -1,28 +1,37 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTicketingDto } from './dto/create-ticketing.dto';
-import { UpdateTicketingDto } from './dto/update-ticketing.dto';
-import { Booking, Ticket, sequelize } from 'src/app/shared/db';
+import { CreateTicketDto } from './dto/create-ticket.dto';
+// import { Booking } from 'src/app/shared/db';
 import axios from 'axios';
 import { QueryTypes } from 'sequelize';
 import { getPassword, getTimeStamp } from 'src/app/core/utils';
 import { config } from 'dotenv';
-import { Ticketing } from './entities/ticketing.entity';
 import { sendMessage } from 'src/app/core/utils/sms';
 import { createCode } from 'src/app/core/utils/qrcode';
+import { Ticket as ITicket } from './entities/ticket.entity';
+import { InjectModel } from '@nestjs/sequelize';
+import Ticket from './ticket.model';
+import { Sequelize } from 'sequelize-typescript';
+import Booking from '../booking/booking.model';
 
 config();
 
 @Injectable()
-export class TicketingService {
-  async create(ticket: CreateTicketingDto) {
-    await Ticket.create(ticket as any);
+export class TicketsService {
+  constructor(
+    @InjectModel(Ticket)
+    private ticket: typeof Ticket,
+    @InjectModel(Booking)
+    private booking: typeof Ticket,
+    private sequelize: Sequelize,
+  ) {}
+  async create(ticket: CreateTicketDto) {
+    await this.ticket.create(ticket as any);
     return 'success';
   }
 
   async findAll() {
-    const tickets = (
-      await sequelize.query(
-        `
+    const tickets = await this.sequelize.query(
+      `
         SELECT
           *,
           (
@@ -32,15 +41,14 @@ export class TicketingService {
           ) AS prices
         FROM tickets;
         `,
-        { type: QueryTypes.SELECT },
-      )
-    )[0];
+      { type: QueryTypes.SELECT },
+    );
     return tickets;
   }
 
   async findOneWithPrice(ticketId: string, priceId: string) {
     const ticket = (
-      await sequelize.query(
+      await this.sequelize.query(
         `
         SELECT
           t.*,
@@ -64,7 +72,7 @@ export class TicketingService {
 
   async findOne(id: string) {
     const ticket = (
-      await sequelize.query(
+      await this.sequelize.query(
         `
         SELECT
           *,
@@ -82,19 +90,15 @@ export class TicketingService {
         },
       )
     )[0];
-    return `This action returns a #${id} ticketing`;
-  }
-
-  update(id: number, _updateTicketingDto: UpdateTicketingDto) {
-    return `This action updates a #${id} ticketing`;
+    return ticket;
   }
 
   remove(id: number) {
-    return `This action removes a #${id} ticketing`;
+    return `This action removes a #${id} ticke`;
   }
 
   async purchase(ticketId: string, priceId: string, phone: string) {
-    const ticket: Ticketing = await this.findOneWithPrice(ticketId, priceId);
+    const ticket: ITicket = await this.findOneWithPrice(ticketId, priceId);
     console.log({ ticket });
     try {
       const resp = await axios.get(
@@ -122,8 +126,7 @@ export class TicketingService {
           PartyA: +phone,
           PartyB: 174379,
           PhoneNumber: +phone,
-          CallBackURL:
-            'https://4280-105-163-0-28.ngrok-free.app/ticketing/payment/callback',
+          CallBackURL: process.env.CallBackURL + '/tickets/payment/callback',
           AccountReference: '2BrotherEnt',
           TransactionDesc: 'Payment of X',
           Timestamp,
@@ -160,11 +163,12 @@ export class TicketingService {
     const QRCode = await createCode(params);
     params['QRCode'] = QRCode;
 
-    const item: any = await Booking.create(params);
+    const item: any = await this.booking.create(params);
+    const link = process.env.UI + '/bookings/' + item.id;
     const body = `
     Thank you for the booking.
 
-    Download your ticket from https://4280-105-163-0-28.ngrok-free.app/?download=${item.id}
+    Download your ticket from ${link}
     `;
     await sendMessage(`+${params.PhoneNumber}`, body);
     console.log('Success');

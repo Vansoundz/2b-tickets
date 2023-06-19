@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { PricingService } from './pricing.service';
 import { CreatePricingDto } from './dto/create-pricing.dto';
-import { UpdatePricingDto } from './dto/update-pricing.dto';
 
 @Controller('pricing')
 export class PricingController {
@@ -32,8 +31,8 @@ export class PricingController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePricingDto: UpdatePricingDto) {
-    return this.pricingService.update(+id, updatePricingDto);
+  update(@Param('id') id: string) {
+    return this.pricingService.update(+id);
   }
 
   @Delete(':id')

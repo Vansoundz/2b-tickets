@@ -1,3 +1,3 @@
-export class Ticketing {
+export class Ticket {
   [name: string]: any;
 }
