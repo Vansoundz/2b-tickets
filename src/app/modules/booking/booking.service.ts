@@ -34,15 +34,12 @@ export class BookingService {
   }
 
   async getBooking(id: string) {
-    const booking = await this.sequelize.query(
-      `SELECT * FROM bookings WHERE id = ?`,
-      {
+    const booking = (
+      await this.sequelize.query(`SELECT * FROM bookings WHERE id = ?`, {
         type: QueryTypes.SELECT,
         replacements: [id],
-      },
-    );
-
-    console.log({ booking });
+      })
+    )[0];
 
     return booking;
   }

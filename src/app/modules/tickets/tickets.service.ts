@@ -164,7 +164,7 @@ export class TicketsService {
     params['QRCode'] = QRCode;
 
     const item: any = await this.booking.create(params);
-    const link = process.env.UI + '/bookings/' + item.id;
+    const link = process.env.UI + '/bookings/' + item.id + '/download';
     const body = `
     Thank you for the booking.
 
