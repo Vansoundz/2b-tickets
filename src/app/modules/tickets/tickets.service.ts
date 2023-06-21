@@ -38,7 +38,12 @@ export class TicketsService {
             SELECT json_agg(prices)
             FROM prices
             WHERE prices."ticketId" = tickets.id
-          ) AS prices
+          ) AS prices,
+          (
+            SELECT json_agg(images)
+            FROM images
+            WHERE images."ticketId" = tickets.id
+          ) AS images
         FROM tickets;
         `,
       { type: QueryTypes.SELECT },
@@ -80,7 +85,12 @@ export class TicketsService {
             SELECT json_agg(prices)
             FROM prices
             WHERE prices."ticketId" = tickets.id
-          ) AS prices
+          ) AS prices,
+          (
+            SELECT json_agg(images)
+            FROM images
+            WHERE images."ticketId" = tickets.id
+          ) AS images
         FROM tickets
         WHERE tickets.id = :id;
         `,

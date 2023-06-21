@@ -20,6 +20,12 @@ export class Ticket extends Model {
   })
   name: string;
 
+  @Column({
+    allowNull: false,
+    defaultValue: 'image.png',
+  })
+  imageUrl: string;
+
   @Default(new Date())
   @Column({
     type: DataType.DATE,

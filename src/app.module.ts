@@ -21,6 +21,7 @@ import Price from './app/modules/pricing/price.model';
       database: '2brother',
       autoLoadModels: true,
       synchronize: true,
+      logging: false,
       protocol: 'tcp',
       dialectOptions: {
         ssl: {
